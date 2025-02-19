@@ -1,0 +1,51 @@
+1.
+cat <<EOF | kind create cluster --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 8080
+    hostPort: 8080
+    protocol: TCP
+  - containerPort: 8443
+    hostPort: 8443
+    protocol: TCP
+EOF
+
+
+2. 
+curl -L https://istio.io/downloadIstio | sh -
+
+cd istio-1.24.3
+cp bin/istioctl /usr/bin
+
+3. 
+
+istioctl install --set profile=demo -y
+
+kubectl label namespace default istio-injection=enabled
+
+kubectl patch deploy -n istio-system istio-ingressgateway -p '{"spec":{"template":{"spec":{"dnsPolicy":"ClusterFirstWithHostNet","hostNetwork":true}}}}'
+
+4.
+
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.21/samples/bookinfo/platform/kube/bookinfo.yaml
+
+check state
+kubectl get pod
+
+kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.21/samples/bookinfo/networking/bookinfo-gateway.yaml
+
+kubectl apply -f samples/addons
+
+wait pod start
+kubectl get po -n istio-system
+
+kubectl -n istio-system port-forward svc/kiali 20001:20001 --address 0.0.0.0
