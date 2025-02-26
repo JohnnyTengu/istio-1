@@ -62,3 +62,23 @@ kubectl apply -f samples/bookinfo/networking/bookinfo-gateway.yaml
 ```
 
 
+Затем необходимо добавить телеметрию
+```
+kubectl apply -f - <<EOF
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: default
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+EOF
+```
+
+Проверим что у нас что-то собирается
+`for i in $(seq 1 100); do curl -s -o /dev/null "http://$GATEWAY_URL/productpage"; done`
+
+---
+
