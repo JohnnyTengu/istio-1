@@ -80,5 +80,9 @@ EOF
 Проверим что у нас что-то собирается
 `for i in $(seq 1 100); do curl -s -o /dev/null "http://$GATEWAY_URL/productpage"; done`
 
+открыть jaeger у себя на хосте
+kubectl -n istio-system port-forward svc/tracing 8888:80 --address 0.0.0.0
+
+http://ip:8888
 ---
 
